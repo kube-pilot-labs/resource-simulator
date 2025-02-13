@@ -2,13 +2,13 @@
 
 This repository simulates CPU and memory usage.
 
-## build
+## Build
 
 ```bash
 go build -o resource-simulator cmd/server/main.go
 ```
 
-## run
+## Run
 
 ```bash
 ./resource-simulator
