@@ -13,6 +13,7 @@ func InitLoadHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	cpuParam := query.Get("cpu")
 	memParam := query.Get("mem")
+	durationParam := query.Get("duration")
 
 	cpuLoad := 0
 	memLoadMB := 0
@@ -36,6 +37,14 @@ func InitLoadHandler(w http.ResponseWriter, r *http.Request) {
 
 	duration := 60 * time.Second
 
+	if durationParam != "" {
+		duration, err = time.ParseDuration(durationParam)
+		if err != nil {
+			http.Error(w, "Invalid duration parameter value.", http.StatusBadRequest)
+			return
+		}
+	}
+
 	service.StartLoad(cpuLoad, memLoadMB, duration)
 
 	response := map[string]interface{}{
@@ -54,7 +63,7 @@ func AbortLoadHandler(w http.ResponseWriter, r *http.Request) {
 	service.AbortLoad()
 
 	response := map[string]interface{}{
-		"result": "true",
+		"result": true,
 	}
 	err := util.WriteJSONResponse(w, http.StatusOK, response)
 	if err != nil {

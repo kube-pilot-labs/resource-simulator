@@ -8,6 +8,6 @@ import (
 
 func PingHandler(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResponse(w, http.StatusOK, map[string]interface{}{
-		"result": "true",
+		"result": true,
 	})
 }
