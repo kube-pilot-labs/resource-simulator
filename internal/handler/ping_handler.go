@@ -2,9 +2,12 @@ package handler
 
 import (
 	"net/http"
+
+	"github.com/kube-pilot-labs/resource-simulator/internal/util"
 )
 
 func PingHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("true"))
+	util.WriteJSONResponse(w, http.StatusOK, map[string]interface{}{
+		"result": "true",
+	})
 }

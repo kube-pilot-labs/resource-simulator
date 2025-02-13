@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/kube-pilot-labs/resource-simulator/internal/service"
+	"github.com/kube-pilot-labs/resource-simulator/internal/util"
 )
 
 func InitLoadHandler(w http.ResponseWriter, r *http.Request) {
@@ -14,21 +14,21 @@ func InitLoadHandler(w http.ResponseWriter, r *http.Request) {
 	cpuParam := query.Get("cpu")
 	memParam := query.Get("mem")
 
-	cpuGoroutines := 0
-	memMB := 0
+	cpuLoad := 0
+	memLoadMB := 0
 	var err error
 
 	if cpuParam != "" {
-		cpuGoroutines, err = strconv.Atoi(cpuParam)
-		if err != nil || cpuGoroutines < 0 {
+		cpuLoad, err = strconv.Atoi(cpuParam)
+		if err != nil || cpuLoad < 0 {
 			http.Error(w, "Invalid cpu parameter value.", http.StatusBadRequest)
 			return
 		}
 	}
 
 	if memParam != "" {
-		memMB, err = strconv.Atoi(memParam)
-		if err != nil || memMB < 0 {
+		memLoadMB, err = strconv.Atoi(memParam)
+		if err != nil || memLoadMB < 0 {
 			http.Error(w, "Invalid mem parameter value.", http.StatusBadRequest)
 			return
 		}
@@ -36,27 +36,28 @@ func InitLoadHandler(w http.ResponseWriter, r *http.Request) {
 
 	duration := 60 * time.Second
 
-	// 기존 로직 대신 service의 StartLoad 호출
-	service.StartLoad(cpuGoroutines, memMB, duration)
+	service.StartLoad(cpuLoad, memLoadMB, duration)
 
 	response := map[string]interface{}{
-		"cpuLoad":  cpuGoroutines,
-		"memLoad":  memMB,
-		"duration": duration.String(),
+		"cpuLoad":   cpuLoad,
+		"memLoadMB": memLoadMB,
+		"duration":  duration.String(),
 	}
-	jsonData, err := json.Marshal(response)
+
+	err = util.WriteJSONResponse(w, http.StatusOK, response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(jsonData)
 }
 
 func AbortLoadHandler(w http.ResponseWriter, r *http.Request) {
 	service.AbortLoad()
 
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("load aborted"))
+	response := map[string]interface{}{
+		"result": "true",
+	}
+	err := util.WriteJSONResponse(w, http.StatusOK, response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
